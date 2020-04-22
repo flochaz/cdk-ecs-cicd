@@ -108,6 +108,7 @@ export class AppStack extends cdk.Stack {
           });
 
           props.restApi.root.addMethod(`GET`, integration);
+          props.restApi.root.addResource('test');
 
         // CfnOutput the DNS where you can access your service
         new cdk.CfnOutput(this, 'LoadBalancerDNS', { value: lb.loadBalancerDnsName });
