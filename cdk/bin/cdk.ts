@@ -3,6 +3,7 @@ import 'source-map-support/register';
 import * as cdk from '@aws-cdk/core';
 
 import { ClusterStack } from '../lib/cluster-stack';
+import { ApiStack } from '../lib/api-stack';
 import { AppStack } from '../lib/app-stack';
 import { DevPipelineStack } from '../lib/dev-pipeline-stack';
 import { StagingProdPipelineStack } from '../lib/staging-prod-pipeline-stack';
@@ -34,8 +35,13 @@ const stagingProdPipelineStack = new StagingProdPipelineStack(app, 'StagingProdP
 });
 cdk.Tag.add(stagingProdPipelineStack, 'environment', 'prod');
 
+// DevApiStack
+const devApiStack = new ApiStack(app, 'DevApiStack', );
+cdk.Tag.add(devApiStack, 'environment', 'dev');
+
 // DevAppStack
 const devAppStack = new AppStack(app, 'DevAppStack', {
+    // restApi: devApiStack.restApi, 
     vpc: devClusterStack.vpc,
     cluster: devClusterStack.cluster,
     //autoDeploy: false,

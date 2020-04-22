@@ -2,7 +2,9 @@
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as ecs from '@aws-cdk/aws-ecs';
-import * as elbv2 from '@aws-cdk/aws-elasticloadbalancingv2';
+import * as elbv2 from '@aws-cdk/aws-elasticloadbalancingv2'
+import * as apigateway from '@aws-cdk/aws-apigateway';
+
 import path = require('path');
 
 export interface AppStackProps extends cdk.StackProps {
@@ -10,6 +12,7 @@ export interface AppStackProps extends cdk.StackProps {
     cluster: ecs.Cluster;
     appImage?: ecs.ContainerImage;
     nginxImage?: ecs.ContainerImage;
+    // restApi: apigateway.RestApi;
 }
 
 export class AppStack extends cdk.Stack {
@@ -76,10 +79,10 @@ export class AppStack extends cdk.Stack {
             }
         })
 
-        // Add public ALB loadbalancer targetting service
-        const lb = new elbv2.ApplicationLoadBalancer(this, 'LB', {
+        // Add private NLB loadbalancer targetting service
+        const lb = new elbv2.NetworkLoadBalancer(this, 'LB', {
             vpc: props.vpc,
-            internetFacing: true
+            internetFacing: false
         });
 
         const listener = lb.addListener('HttpListener', {
@@ -88,9 +91,13 @@ export class AppStack extends cdk.Stack {
 
         listener.addTargets('DefaultTarget', {
             port: 80,
-            protocol: elbv2.ApplicationProtocol.HTTP,
             targets: [service]
         });
+
+        new apigateway.VpcLink(this, 'VpcLink', {
+            targets: [lb]
+        });
+
 
         // CfnOutput the DNS where you can access your service
         new cdk.CfnOutput(this, 'LoadBalancerDNS', { value: lb.loadBalancerDnsName });
