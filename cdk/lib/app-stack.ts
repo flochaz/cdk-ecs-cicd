@@ -12,7 +12,7 @@ export interface AppStackProps extends cdk.StackProps {
     cluster: ecs.Cluster;
     appImage?: ecs.ContainerImage;
     nginxImage?: ecs.ContainerImage;
-    // restApi: apigateway.RestApi;
+    restApi: apigateway.RestApi;
 }
 
 export class AppStack extends cdk.Stack {
@@ -94,10 +94,20 @@ export class AppStack extends cdk.Stack {
             targets: [service]
         });
 
-        new apigateway.VpcLink(this, 'VpcLink', {
+        const link = new apigateway.VpcLink(this, 'VpcLink', {
             targets: [lb]
         });
 
+        const integration = new apigateway.Integration({
+            type: apigateway.IntegrationType.HTTP_PROXY,
+            integrationHttpMethod: 'ANY',
+            options: {
+              connectionType: apigateway.ConnectionType.VPC_LINK,
+              vpcLink: link
+            }
+          });
+
+          props.restApi.root.addMethod(`GET`, integration);
 
         // CfnOutput the DNS where you can access your service
         new cdk.CfnOutput(this, 'LoadBalancerDNS', { value: lb.loadBalancerDnsName });

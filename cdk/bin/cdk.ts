@@ -41,7 +41,7 @@ cdk.Tag.add(devApiStack, 'environment', 'dev');
 
 // DevAppStack
 const devAppStack = new AppStack(app, 'DevAppStack', {
-    // restApi: devApiStack.restApi, 
+    restApi: devApiStack.restApi, 
     vpc: devClusterStack.vpc,
     cluster: devClusterStack.cluster,
     //autoDeploy: false,
@@ -50,8 +50,12 @@ const devAppStack = new AppStack(app, 'DevAppStack', {
 });
 cdk.Tag.add(devAppStack, 'environment', 'dev');
 
+// StagingApiStack
+const stagingApiStack = new ApiStack(app, 'StagingApiStack', );
+cdk.Tag.add(devApiStack, 'environment', 'dev');
 // StagingAppStack
 const stagingAppStack = new AppStack(app, 'StagingAppStack', {
+    restApi: stagingApiStack.restApi, 
     vpc: prodClusterStack.vpc,
     cluster: prodClusterStack.cluster,
     //autoDeploy: false,
@@ -60,8 +64,11 @@ const stagingAppStack = new AppStack(app, 'StagingAppStack', {
 });
 cdk.Tag.add(stagingAppStack, 'environment', 'staging');
 
+// ProdApiStack
+const prodApiStack = new ApiStack(app, 'ProdApiStack', );
 // ProdAppStack
 const prodAppStack = new AppStack(app, 'ProdAppStack', {
+    restApi: prodApiStack.restApi, 
     vpc: prodClusterStack.vpc,
     cluster: prodClusterStack.cluster,
     //autoDeploy: false,
