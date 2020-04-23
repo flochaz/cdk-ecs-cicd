@@ -7,7 +7,5 @@ export class ApiStack extends cdk.Stack {
     constructor(scope: cdk.Construct, id: string) {
         super(scope, id);
         this.restApi = new apigateway.RestApi(this, 'pinguin-api');
-        this.restApi.root.addMethod('ANY');
-
     }
 }

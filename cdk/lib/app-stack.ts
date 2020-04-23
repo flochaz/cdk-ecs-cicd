@@ -100,7 +100,8 @@ export class AppStack extends cdk.Stack {
 
         const integration = new apigateway.Integration({
             type: apigateway.IntegrationType.HTTP_PROXY,
-            integrationHttpMethod: 'ANY',
+            integrationHttpMethod: 'GET',
+            uri: `http://${lb.loadBalancerDnsName}`,
             options: {
               connectionType: apigateway.ConnectionType.VPC_LINK,
               vpcLink: link
