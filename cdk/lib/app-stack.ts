@@ -54,7 +54,7 @@ export class AppStack extends cdk.Stack {
         // Instantiate Fargate Service with cluster and images
         const service = new ecs.FargateService(this, 'Service', {
             cluster: props.cluster,
-            taskDefinition
+            taskDefinition: taskDefinition
         });
 
         // Setup autoscaling
@@ -107,7 +107,7 @@ export class AppStack extends cdk.Stack {
             }
           });
 
-          props.restApi.root.addMethod(`GET`, integration);
+           props.restApi.root.addMethod(`GET`, integration);
 
         // CfnOutput the DNS where you can access your service
         new cdk.CfnOutput(this, 'LoadBalancerDNS', { value: lb.loadBalancerDnsName });
