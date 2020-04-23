@@ -23,7 +23,8 @@ export class AppStack extends cdk.Stack {
         // Create a task definition with 2 containers and CloudWatch Logs
         const taskDefinition = new ecs.FargateTaskDefinition(this, 'TaskDef', {
             memoryLimitMiB: 512,            
-            cpu: 256
+            cpu: 256,
+            
         });
         
         // Add app container
@@ -54,8 +55,10 @@ export class AppStack extends cdk.Stack {
         // Instantiate Fargate Service with cluster and images
         const service = new ecs.FargateService(this, 'Service', {
             cluster: props.cluster,
-            taskDefinition
+            taskDefinition,
         });
+
+        service.loadBalancerTarget({containerName: 'nginx', containerPort: 80, protocol: ecs.Protocol.TCP});
 
         // Setup autoscaling
         const scaling = service.autoScaleTaskCount({ maxCapacity: 4 });
@@ -100,7 +103,8 @@ export class AppStack extends cdk.Stack {
 
         const integration = new apigateway.Integration({
             type: apigateway.IntegrationType.HTTP_PROXY,
-            integrationHttpMethod: 'ANY',
+            integrationHttpMethod: 'GET',
+            uri: `http://${lb.loadBalancerDnsName}`,
             options: {
               connectionType: apigateway.ConnectionType.VPC_LINK,
               vpcLink: link
