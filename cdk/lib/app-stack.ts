@@ -106,9 +106,8 @@ export class AppStack extends cdk.Stack {
               vpcLink: link
             }
           });
-          const api = new apigateway.RestApi(this, 'pinguin-api-2');
 
-          api.root.addMethod(`GET`, integration);
+          props.restApi.root.addMethod(`GET`, integration);
 
         // CfnOutput the DNS where you can access your service
         new cdk.CfnOutput(this, 'LoadBalancerDNS', { value: lb.loadBalancerDnsName });
