@@ -17,6 +17,12 @@ const devClusterStack = new ClusterStack(app, 'DevCluster', {
 });
 cdk.Tag.add(devClusterStack, 'environment', 'dev');
 
+const stagingClusterStack = new ClusterStack(app, 'StagingCluster', {
+    cidr: '10.1.0.0/20',
+    maxAZs: 2
+});
+cdk.Tag.add(devClusterStack, 'environment', 'dev');
+
 const prodClusterStack = new ClusterStack(app, 'ProdCluster', {
     cidr: '10.3.0.0/20',
     maxAZs: 2
@@ -36,36 +42,50 @@ const stagingProdPipelineStack = new StagingProdPipelineStack(app, 'StagingProdP
 cdk.Tag.add(stagingProdPipelineStack, 'environment', 'prod');
 
 // DevApiStack
-const devApiStack = new ApiStack(app, 'DevApiStack', );
+const devApiStack = new ApiStack(app, 'DevApiStack', {
+    vpc: devClusterStack.vpc
+});
 cdk.Tag.add(devApiStack, 'environment', 'dev');
 
 // DevAppStack
 const devAppStack = new AppStack(app, 'DevAppStack', {
-    restApi: devApiStack.restApi, 
     vpc: devClusterStack.vpc,
     cluster: devClusterStack.cluster,
     //autoDeploy: false,
     appImage: devPipelineStack.appBuiltImage,
     nginxImage: devPipelineStack.nginxBuiltImage,
+    restApi: devApiStack.restApi,
+    vpcLink: devApiStack.vpcLink,
+    lb: devApiStack.lb,
+    apiResourceName: 'service1',
+    lbAppListenerPort: 8001
 });
 cdk.Tag.add(devAppStack, 'environment', 'dev');
 
 // StagingApiStack
-const stagingApiStack = new ApiStack(app, 'StagingApiStack', );
+const stagingApiStack = new ApiStack(app, 'StagingApiStack',  {
+    vpc: stagingClusterStack.vpc
+});
 cdk.Tag.add(devApiStack, 'environment', 'dev');
 // StagingAppStack
 const stagingAppStack = new AppStack(app, 'StagingAppStack', {
     restApi: stagingApiStack.restApi, 
-    vpc: prodClusterStack.vpc,
+    vpc: stagingClusterStack.vpc,
     cluster: prodClusterStack.cluster,
     //autoDeploy: false,
     appImage: stagingProdPipelineStack.appBuiltImageStaging,
     nginxImage: stagingProdPipelineStack.nginxBuiltImageStaging,
+    vpcLink: stagingApiStack.vpcLink,
+    lb: stagingApiStack.lb,
+    apiResourceName: 'service1',
+    lbAppListenerPort: 8001
 });
 cdk.Tag.add(stagingAppStack, 'environment', 'staging');
 
 // ProdApiStack
-const prodApiStack = new ApiStack(app, 'ProdApiStack', );
+const prodApiStack = new ApiStack(app, 'ProdApiStack', {
+    vpc: prodClusterStack.vpc
+});
 // ProdAppStack
 const prodAppStack = new AppStack(app, 'ProdAppStack', {
     restApi: prodApiStack.restApi, 
@@ -74,6 +94,10 @@ const prodAppStack = new AppStack(app, 'ProdAppStack', {
     //autoDeploy: false,
     appImage: stagingProdPipelineStack.appBuiltImageProd,
     nginxImage: stagingProdPipelineStack.nginxBuiltImageProd,
+    vpcLink: prodApiStack.vpcLink,
+    lb: prodApiStack.lb,
+    apiResourceName: 'service1',
+    lbAppListenerPort: 8001
 });
 cdk.Tag.add(prodAppStack, 'environment', 'prod');
 

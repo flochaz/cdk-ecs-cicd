@@ -2,8 +2,8 @@
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as ecs from '@aws-cdk/aws-ecs';
-import * as elbv2 from '@aws-cdk/aws-elasticloadbalancingv2'
 import * as apigateway from '@aws-cdk/aws-apigateway';
+import * as elbv2 from '@aws-cdk/aws-elasticloadbalancingv2';
 
 import path = require('path');
 
@@ -13,6 +13,10 @@ export interface AppStackProps extends cdk.StackProps {
     appImage?: ecs.ContainerImage;
     nginxImage?: ecs.ContainerImage;
     restApi: apigateway.RestApi;
+    lbAppListenerPort: number;
+    vpcLink: apigateway.VpcLink;
+    lb: elbv2.NetworkLoadBalancer;
+    apiResourceName: string;
 }
 
 export class AppStack extends cdk.Stack {
@@ -79,38 +83,27 @@ export class AppStack extends cdk.Stack {
             }
         })
 
-        // Add private NLB loadbalancer targetting service
-        const lb = new elbv2.NetworkLoadBalancer(this, 'LB', {
-            vpc: props.vpc,
-            internetFacing: false
-        });
 
-        const listener = lb.addListener('HttpListener', {
-            port: 80
+        const listener = props.lb.addListener(`HttpListener${props.lbAppListenerPort}`, {
+            port: props.lbAppListenerPort
         });
 
         listener.addTargets('DefaultTarget', {
-            port: 80,
+            port: props.lbAppListenerPort,
             targets: [service]
-        });
-
-        const link = new apigateway.VpcLink(this, 'VpcLink', {
-            targets: [lb]
         });
 
         const integration = new apigateway.Integration({
             type: apigateway.IntegrationType.HTTP_PROXY,
             integrationHttpMethod: 'GET',
-            uri: `http://${lb.loadBalancerDnsName}`,
+            uri: `http://${props.lb.loadBalancerDnsName}:${props.lbAppListenerPort}`,
             options: {
               connectionType: apigateway.ConnectionType.VPC_LINK,
-              vpcLink: link
+              vpcLink: props.vpcLink
             }
           });
 
-           props.restApi.root.addMethod(`GET`, integration);
-
-        // CfnOutput the DNS where you can access your service
-        new cdk.CfnOutput(this, 'LoadBalancerDNS', { value: lb.loadBalancerDnsName });
+          const resource = props.restApi.root.addResource(props.apiResourceName)
+          resource.addMethod(`GET`, integration);
     }
 }
