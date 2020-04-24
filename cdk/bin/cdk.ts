@@ -62,6 +62,21 @@ const devAppStack = new AppStack(app, 'DevAppStack', {
 });
 cdk.Tag.add(devAppStack, 'environment', 'dev');
 
+// DevAppStack
+const devApp2Stack = new AppStack(app, 'DevApp2Stack', {
+    vpc: devClusterStack.vpc,
+    cluster: devClusterStack.cluster,
+    //autoDeploy: false,
+    appImage: devPipelineStack.appBuiltImage,
+    nginxImage: devPipelineStack.nginxBuiltImage,
+    restApi: devApiStack.restApi,
+    vpcLink: devApiStack.vpcLink,
+    lb: devApiStack.lb,
+    apiResourceName: 'service2',
+    lbAppListenerPort: 8002
+});
+cdk.Tag.add(devApp2Stack, 'environment', 'dev');
+
 // StagingApiStack
 const stagingApiStack = new ApiStack(app, 'StagingApiStack',  {
     vpc: stagingClusterStack.vpc

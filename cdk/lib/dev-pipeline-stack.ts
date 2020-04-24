@@ -105,13 +105,14 @@ export class DevPipelineStack extends cdk.Stack {
             build: {
               commands: [
                 'npm run build',
-                'npm run cdk synth DevAppStack -- -o .'
+                'npm run cdk synth DevAppStack -- -o .',
+                'npm run cdk synth DevApp2Stack -- -o .'
               ],
             },
           },
           artifacts: {
             'base-directory': 'cdk',
-            files: 'DevAppStack.template.json',
+            files: ['DevAppStack.template.json', 'DevApp2Stack.template.json'],
           },
         }),
       });
