@@ -164,6 +164,17 @@ export class DevPipelineStack extends cdk.Stack {
                 },
                 extraInputs: [dockerBuildOutput],
               }),
+              new codepipeline_actions.CloudFormationCreateUpdateStackAction({
+                actionName: 'CFN_Deploy',
+                stackName: 'DevAppStack',
+                templatePath: cdkBuildOutput.atPath('DevApp2Stack.template.json'),
+                adminPermissions: true,
+                parameterOverrides: {
+                  [this.appBuiltImage.paramName]: dockerBuildOutput.getParam('imageTag.json', 'imageTag'),
+                  [this.nginxBuiltImage.paramName]: dockerBuildOutput.getParam('imageTag.json', 'imageTag'),
+                },
+                extraInputs: [dockerBuildOutput],
+              }),
             ],
           },
         ],
